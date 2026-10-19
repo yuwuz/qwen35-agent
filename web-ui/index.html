@@ -89,9 +89,9 @@
       </div>
     </div>
 
-    <!-- Skills — chip grid, tik yok -->
+    <!-- 功能 — chip grid, tik yok -->
     <div class="panel compact">
-      <div class="panel-title">Skills <span class="panel-count">20 araç</span></div>
+      <div class="panel-title">功能 <span class="panel-count">20 個工具</span></div>
       <div class="tools-grid">
         <label class="tool-chip"><input type="checkbox" id="toolWeb" checked hidden><span class="chip-dot"></span> Web</label>
         <label class="tool-chip"><input type="checkbox" id="toolFile" checked hidden><span class="chip-dot"></span> Files</label>
@@ -108,10 +108,10 @@
     <!-- Book — kalıcı durum -->
     <div class="panel compact">
       <div class="panel-title">📚 Book <span class="panel-count">auto layout</span></div>
-      <div id="bookStatus" style="font-size:11.5px;color:var(--muted);line-height:1.5;padding:6px 0">No books yet<br><span style="color:var(--muted2)">Say "write book" — page layout, contents, numbers auto</span></div>
+      <div id="bookStatus" style="font-size:11.5px;color:var(--muted);line-height:1.5;padding:6px 0">目前沒有書籍<br><span style="color:var(--muted2)">Say "write book" — page layout, contents, numbers auto</span></div>
       <div class="row" style="margin-top:6px">
-        <button class="btn small ghost" style="flex:1" onclick="(async()=>{const r=await fetch('/api/book-status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const j=await r.json();const el=document.getElementById('bookStatus');if(j.kitaplar&&j.kitaplar.length) el.innerHTML=j.kitaplar.map(k=>`📖 <b>${k.baslik}</b> — ${k.tamam} · ${k.siradaki}`).join('<br>'); else el.textContent=j.mesaj||'No books yet'})()">View Status</button>
-        <button class="btn small ghost" onclick="window.open('file:///A:/AI/qwen35-agent-test-workspace/Booklar','_blank')">Folder</button>
+        <button class="btn small ghost" style="flex:1" onclick="(async()=>{const r=await fetch('/api/book-status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const j=await r.json();const el=document.getElementById('bookStatus');if(j.kitaplar&&j.kitaplar.length) el.innerHTML=j.kitaplar.map(k=>`📖 <b>${k.baslik}</b> — ${k.tamam} · ${k.siradaki}`).join('<br>'); else el.textContent=j.mesaj||'目前沒有書籍'})()">查看狀態</button>
+        <button class="btn small ghost" onclick="window.open('file:///A:/AI/qwen35-agent-test-workspace/Booklar','_blank')">開啟資料夾</button>
       </div>
     </div>
 
@@ -182,7 +182,7 @@
         </div>
         <div id="atList" class="at-list"></div>
         <div class="at-footer">
-          <span>↑↓ seç • Enter aç/ekle • Esc kapat • Çift tık klasör</span>
+          <span>↑↓ 選擇 • Enter 開啟或加入 • Esc 關閉 • 雙擊資料夾</span>
           <span id="atHint" class="at-hint"></span>
         </div>
       </div>
@@ -191,8 +191,8 @@
       </div>
       <div id="fileChips" class="file-chips hidden"></div>
       <div class="input-row">
-        <textarea id="prompt" class="prompt" placeholder="Write a message... (@ to select file • /think to reason)" rows="1"></textarea>
-        <button id="stopBtn" class="btn danger" style="display:none;width:44px;height:44px;border-radius:12px;font-size:16px;flex-shrink:0" title="Durdur (Esc)">⏹</button>
+        <textarea id="prompt" class="prompt" placeholder="輸入訊息...（@ 選取檔案 • /think 啟用深度思考）" rows="1"></textarea>
+        <button id="stopBtn" class="btn danger" style="display:none;width:44px;height:44px;border-radius:12px;font-size:16px;flex-shrink:0" title="停止（Esc）">⏹</button>
         <button id="sendBtn" class="btn send">▶</button>
       </div>
       <div class="composer-foot">
@@ -205,7 +205,7 @@
   <!-- RIGHT - History & Details -->
   <aside class="rightbar">
     <div class="panel">
-      <div class="panel-title" style="display:flex;align-items:center;gap:8px">💬 Sohbetler <button class="btn small primary" id="newChatBtn" style="margin-left:auto;padding:4px 10px;font-size:11px">➕ Yeni</button></div>
+      <div class="panel-title" style="display:flex;align-items:center;gap:8px">💬 對話 <button class="btn small primary" id="newChatBtn" style="margin-left:auto;padding:4px 10px;font-size:11px">➕ 新對話</button></div>
       <div id="conversationList" class="conversation-list" style="display:flex;flex-direction:column;gap:6px;max-height:200px;overflow:auto"></div>
     </div>
     <div class="panel">

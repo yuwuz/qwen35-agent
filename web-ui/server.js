@@ -125,8 +125,8 @@ const server = http.createServer(async (req,res)=>{
   if(req.url === "/api/write-file" && req.method==="POST"){
     try{
       const {path: p, content} = JSON.parse(await readBody(req))
-      if(!p) throw new Error("path parametresi zorunlu")
-      if(content && Buffer.byteLength(content, "utf-8") > MAX_FILE_SIZE) throw new Error(`Dosya çok büyük (max ${MAX_FILE_SIZE/1024}KB)`)
+      if(!p) throw new Error("path 為必要參數")
+      if(content && Buffer.byteLength(content, "utf-8") > MAX_FILE_SIZE) throw new Error(`檔案過大 (max ${MAX_FILE_SIZE/1024}KB)`)
       const full = resolvePath(p)
       log(`[write] ${full} (${(content||"").length} chars)`)
       fs.mkdirSync(path.dirname(full), {recursive:true})
@@ -138,10 +138,10 @@ const server = http.createServer(async (req,res)=>{
   if(req.url === "/api/read-file" && req.method==="POST"){
     try{
       const {path: p, offset, limit} = JSON.parse(await readBody(req))
-      if(!p) throw new Error("path parametresi zorunlu")
+      if(!p) throw new Error("path 為必要參數")
       const full = resolvePath(p)
       const stat = fs.statSync(full)
-      if(stat.size > MAX_FILE_SIZE) throw new Error(`Dosya çok büyük (${stat.size} bytes, max ${MAX_FILE_SIZE})`)
+      if(stat.size > MAX_FILE_SIZE) throw new Error(`檔案過大 (${stat.size} bytes, max ${MAX_FILE_SIZE})`)
       const content = fs.readFileSync(full, "utf-8")
       let out = content
       if(offset || limit){
@@ -405,7 +405,7 @@ const server = http.createServer(async (req,res)=>{
       const os = await import("node:os")
       const cwd = process.cwd()
       const desktopFiles = fs.readdirSync(DESKTOP).slice(0,20)
-      let ollamaModels = "yok"
+      let ollamaModels = "無"
       try{ const r=await fetch("http://127.0.0.1:11434/api/tags"); const j=await r.json(); ollamaModels = j.models.map(m=>m.name).join(", ") }catch{}
       res.writeHead(200, {"Content-Type":"application/json"})
       return res.end(JSON.stringify({ok:true, info: {platform: os.platform(), arch: os.arch(), cpus: os.cpus()[0]?.model, totalMem: (os.totalmem()/1024/1024/1024).toFixed(1)+"GB", cwd, desktopFiles, ollamaModels, node: process.version}}))
@@ -659,7 +659,7 @@ const server = http.createServer(async (req,res)=>{
         // Statik dosyalar: çalıştırma yerine doğrulama
         if(isStatic || lang==="html" || lang==="css"){
           const fileContent = await fsp.readFile(targetFile, "utf-8")
-          if(!fileContent.trim()) throw new Error("Dosya boş")
+          if(!fileContent.trim()) throw new Error("檔案內容為空")
           // Basit HTML/CSS doğrulama
           let validation = ""
           if(ext===".html" || ext===".htm"){
@@ -762,12 +762,12 @@ const server = http.createServer(async (req,res)=>{
 })
 
 server.listen(PORT, "127.0.0.1", ()=>{
-  console.log(`\nAPI Qwen35-Agent Web UI hazir!`)
+  console.log(`\nQwen35-Agent Web UI 已啟動！`)
   console.log(`   -> http://127.0.0.1:${PORT}`)
-  console.log(`   -> Tools API: 15 tools aktif (Smith modu)`)
-  console.log(`      File: write, read, list, edit, delete, mkdir, search, move`)
-  console.log(`      Code: python, javascript, bash, sandbox (kum havuzu)`)
-  console.log(`      Web: search, fetch, system-info`)
-  console.log(`   -> Smith: 3-faz akış, memory, learning, hooks, sandbox, retry`)
+  console.log(`   -> 工具 API：已啟用 15 個工具（Smith 模式）`)
+  console.log(`      檔案：寫入、讀取、列出、編輯、刪除、建立目錄、搜尋、移動`)
+  console.log(`      程式：Python、JavaScript、Shell、沙盒`)
+  console.log(`      網路：搜尋、取得頁面、系統資訊`)
+  console.log(`   -> Smith：三階段流程、記憶、學習、Hooks、沙盒、重試`)
   console.log(`   -> Desktop: ${DESKTOP}\n`)
 })

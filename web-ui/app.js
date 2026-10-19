@@ -47,7 +47,7 @@ clearBtn.onclick = () => {
   messages = []; totalTokens = 0; chat.innerHTML = welcomeHTML(); historyEl.innerHTML=""; updateCtx(); updateHistory(); lastMeta.textContent="Cleared"
   if(activeId){
     const conv = conversations.find(c=>c.id===activeId)
-    if(conv){ conv.messages = []; conv.title="Yeni Chat"; conv.updatedAt=Date.now() }
+    if(conv){ conv.messages = []; conv.title="新對話"; conv.updatedAt=Date.now() }
   }
   try{ localStorage.removeItem("qwen-chat"); }catch{}
   saveConversations(); renderConversationList()
@@ -136,7 +136,7 @@ loadFileBtn.onclick = async ()=>{
 }
 function renderQuickFiles(){
   if(savedFiles.length===0){ quickFiles.innerHTML='<div class="empty">No files created yet</div>'; return }
-  quickFiles.innerHTML = savedFiles.map(f=>`<div class="qfile"><span class="name">📄 ${f.name}</span><button class="btn small" onclick="navigator.clipboard.writeText(\`${f.content.replace(/`/g,"\\`")}\`)">Kopyala</button></div>`).join("")
+  quickFiles.innerHTML = savedFiles.map(f=>`<div class="qfile"><span class="name">📄 ${f.name}</span><button class="btn small" onclick="navigator.clipboard.writeText(\`${f.content.replace(/`/g,"\\`")}\`)">複製</button></div>`).join("")
 }
 
 function estimateTokens(text){ return Math.ceil(text.length/4) }
@@ -161,7 +161,7 @@ function saveChat(){
     // Çoklu sohbeti de güncelle
     if(activeId){
       const conv = conversations.find(c=>c.id===activeId)
-      if(conv){ conv.messages = [...toSave]; conv.updatedAt = Date.now(); if(conv.title==="Yeni Chat" && toSave.length>0) conv.title = toSave.find(m=>m.role==="user")?.content?.slice(0,40) || "Chat" }
+      if(conv){ conv.messages = [...toSave]; conv.updatedAt = Date.now(); if(conv.title==="新對話" && toSave.length>0) conv.title = toSave.find(m=>m.role==="user")?.content?.slice(0,40) || "Chat" }
       try{ localStorage.setItem("qwen-conversations", JSON.stringify(conversations.slice(-20))) }catch{}
       renderConversationList()
     }
@@ -242,7 +242,7 @@ function createNewChat(){
     }
   }
   const id = Date.now().toString(36) + Math.random().toString(36).slice(2,5)
-  const newConv = {id, title: "Yeni Chat", messages: [], createdAt: Date.now(), updatedAt: Date.now()}
+  const newConv = {id, title: "新對話", messages: [], createdAt: Date.now(), updatedAt: Date.now()}
   conversations.push(newConv)
   activeId = id
   messages = []
@@ -287,7 +287,7 @@ function deleteConversation(id){
       messages = []
       // Yeni boş sohbet oluştur
       const nid = Date.now().toString(36)
-      conversations = [{id: nid, title: "Yeni Chat", messages: [], createdAt: Date.now(), updatedAt: Date.now()}]
+      conversations = [{id: nid, title: "新對話", messages: [], createdAt: Date.now(), updatedAt: Date.now()}]
       activeId = nid
     }
     chat.innerHTML = messages.length ? "" : welcomeHTML()
@@ -301,7 +301,7 @@ function deleteConversation(id){
 function updateConversationTitle(){
   if(!activeId || messages.length===0) return
   const conv = conversations.find(c=>c.id===activeId)
-  if(conv && conv.title==="Yeni Chat"){
+  if(conv && conv.title==="新對話"){
     const firstUser = messages.find(m=>m.role==="user")
     if(firstUser){ conv.title = firstUser.content.slice(0,40); conv.updatedAt = Date.now(); saveConversations(); renderConversationList() }
   }
@@ -455,7 +455,7 @@ async function executeToolCall(toolCall){
         const j = await r.json()
         if(j.ok){
           // Tool sonucu hem markdown hem URL içersin, addMsg markdown image'ı render edecek
-          return `✅ Generate imageildi!
+          return `✅ 圖片已產生!
 
 🎨 Prompt: "${j.prompt}"
 📐 Boyut: ${j.width}x${j.height}
@@ -471,7 +471,7 @@ Pollinations direkt link: ${j.url}`
         const w = parsed.width || 1024
         const h = parsed.height || 1024
         const url = `https://image.pollinations.ai/prompt/${enc}?width=${w}&height=${h}&model=flux&nologo=true&seed=${Math.floor(Math.random()*999999)}`
-        return `✅ Generate imageildi (client fallback)!
+        return `✅ 圖片已產生 (client fallback)!
 
 🎨 Prompt: "${parsed.prompt}"
 📐 Boyut: ${w}x${h}
@@ -782,7 +782,7 @@ function renderCodeEditor(lang, code){
   return `<div class="code-editor-wrap">
     <div class="code-editor-header">
       <span class="lang">${langLabel} · ${lineCount} satır</span>
-      <button class="btn small ghost copy-code" data-code="${encodeURIComponent(code)}">📋 Kopyala</button>
+      <button class="btn small ghost copy-code" data-code="${encodeURIComponent(code)}">📋 複製</button>
     </div>
     <div class="code-editor">
       <div class="code-gutter">${gutter}</div>
@@ -805,9 +805,9 @@ function renderToolBox(tc, result, idx){
   const hasResult = result !== undefined
   const isError = hasResult && (String(result).startsWith("❌") || String(result).toLowerCase().includes("error"))
   const status = !hasResult ? "running" : (isError ? "error" : "success")
-  const statusText = !hasResult ? "● Çalışıyor" : (isError ? "● Hata" : "● Başarılı")
+  const statusText = !hasResult ? "● 執行中" : (isError ? "● 錯誤" : "● 成功")
   const preview = hasResult ? String(result).slice(0,500) : ""
-  // generate_image için thumb’ı TOOL kutusunda gösterme — büyük görsel zaten messagesın EN ALTINDA gösterilecek (tek görsel, kafa karışmasın)
+  // generate_image için thumb’ı TOOL kutusunda gösterme — büyük 張圖片 zaten messagesın EN ALTINDA gösterilecek (tek 張圖片, kafa karışmasın)
   let imagePreview = ""
   const iconMap = {file:"📁", code:"💻", web:"🌐", image:"🎨", system:"⚙️"}
   return `<div class="tool-box">
@@ -838,9 +838,9 @@ function addMsg(role, content, opts={}){
   html = html.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, (m, alt, url)=>{
     const safeAlt = escapeHtml(alt)
     const safeUrl = url.replace(/"/g, "&quot;")
-    return `<div style="margin:10px 0"><img src="${safeUrl}" alt="${safeAlt}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;font-size:11px;color:var(--muted);margin-top:4px">Image failed to load: <a href="${safeUrl}" target="_blank" style="color:var(--accent)">${safeUrl}</a></div><div style="font-size:11px;color:var(--muted2);margin-top:4px">🎨 ${safeAlt} • <a href="${safeUrl}" target="_blank" style="color:var(--accent)">Open full size</a> • <button onclick="navigator.clipboard.writeText('${safeUrl}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0">🔗 Kopyala</button></div></div>`
+    return `<div style="margin:10px 0"><img src="${safeUrl}" alt="${safeAlt}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;font-size:11px;color:var(--muted);margin-top:4px">Image failed to load: <a href="${safeUrl}" target="_blank" style="color:var(--accent)">${safeUrl}</a></div><div style="font-size:11px;color:var(--muted2);margin-top:4px">🎨 ${safeAlt} • <a href="${safeUrl}" target="_blank" style="color:var(--accent)">開啟原始尺寸</a> • <button onclick="navigator.clipboard.writeText('${safeUrl}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0">🔗 複製</button></div></div>`
   })
-  // Pollinations raw URL'i direkt görsele çevir (eğer markdown değilse) - sadece pollinations ve görsel uzantıları
+  // Pollinations raw URL'i direkt 張圖片e çevir (eğer markdown değilse) - sadece pollinations ve 張圖片 uzantıları
   html = html.replace(/(?<!["'=])(https?:\/\/image\.pollinations\.ai\/prompt\/[^\s<"]+)/g, (m, url)=>{
     if(html.includes(`src="${url}"`)) return m // zaten img içinde
     return `<div style="margin:10px 0"><img src="${url}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted2);margin-top:4px"><a href="${url}" target="_blank" style="color:var(--accent)">🔗 ${url.slice(0,60)}...</a></div></div>`
@@ -849,13 +849,13 @@ function addMsg(role, content, opts={}){
   html = html.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
   html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<i>$1</i>")
   html = html.replace(/(?<!["'=\(])(https?:\/\/[^\s<"]+)/g, '<a href="$1" target="_blank" style="color:var(--accent)">$1</a>')
-  // Eğer toolResults içinde Pollinations görseli var ve html'de yoksa, otomatik ekle (model sadece URL yazdıysa bile görsel göster)
+  // Eğer toolResults içinde Pollinations 張圖片i var ve html'de yoksa, otomatik ekle (model sadece URL yazdıysa bile 張圖片 göster)
   if((opts.toolResults && opts.toolResults.length) || (opts.toolCalls && opts.toolCalls.some(tc=> tc.function.name==="generate_image"))){
     const allResults = (opts.toolResults || []).map(r=> String(r)).join(" ")
     const urls = [...allResults.matchAll(/https?:\/\/image\.pollinations\.ai\/prompt\/[^\s"']+/g)].map(m=>m[0])
     // Ayrıca html içinde markdown dışı URL varsa da yakala
     if(urls.length && !html.includes("image.pollinations.ai")){
-      const imgs = urls.map(u=> `<div style="margin:12px 0"><img src="${u}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted);margin-top:4px">🎨 Oluşturulan görsel • <a href="${u}" target="_blank" style="color:var(--accent)">Open full size</a> • <button onclick="navigator.clipboard.writeText('${u}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0">🔗 Kopyala</button></div></div>`).join("")
+      const imgs = urls.map(u=> `<div style="margin:12px 0"><img src="${u}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted);margin-top:4px">🎨 已產生的圖片 • <a href="${u}" target="_blank" style="color:var(--accent)">開啟原始尺寸</a> • <button onclick="navigator.clipboard.writeText('${u}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0">🔗 複製</button></div></div>`).join("")
       html += imgs
     }
   }
@@ -876,17 +876,17 @@ function addMsg(role, content, opts={}){
       // zaten yukarıda res undefined ile running gösterir
     }
   } else if(opts.toolResults && opts.toolResults.length){
-    // Sadece sonuçlar - görsel varsa tool meta'da tekrar gösterme, büyük görsel zaten html'in EN ALTINDA eklenecek
+    // Sadece sonuçlar - 張圖片 varsa tool meta'da tekrar gösterme, büyük 張圖片 zaten html'in EN ALTINDA eklenecek
     const hasImage = opts.toolResults.some(r=> String(r).includes("image.pollinations.ai"))
     if(hasImage){
       toolHtml = opts.toolResults.map(r=>{
         const str = String(r)
         const m = str.match(/https?:\/\/image\.pollinations\.ai\/prompt\/[^\s"']+/)
         const link = m ? ` • <a href="${m[0]}" target="_blank" style="color:var(--accent)">🔗 Link</a>` : ""
-        return `<div class="meta" style="border-color:#22c55e;font-size:11px"><b>✅ Generate imageildi</b>${link}</div>`
+        return `<div class="meta" style="border-color:#22c55e;font-size:11px"><b>✅ 圖片已產生</b>${link}</div>`
       }).join("")
     } else {
-      toolHtml = `<div class="meta" style="border-color:#22c55e"><b>✅ Tool Sonuçları:</b><br>${opts.toolResults.map(r=> escapeHtml(r)).join("<br><br>")}</div>`
+      toolHtml = `<div class="meta" style="border-color:#22c55e"><b>✅ 工具結果：</b><br>${opts.toolResults.map(r=> escapeHtml(r)).join("<br><br>")}</div>`
     }
   }
   let imgHtml = ""
@@ -897,7 +897,7 @@ function addMsg(role, content, opts={}){
   if(opts.chips && opts.chips.length){
     chipsHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">` + opts.chips.map(c=> `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--text2)">${c.type==='url'?'🔗':'📄'} ${escapeHtml(c.name)}</span>`).join("") + `</div>`
   }
-  // Sıra düzeltildi: Tool üstte, görsel en altta (doğal akış: üstte işlem, altta sonuç)
+  // Sıra düzeltildi: Tool üstte, 張圖片 en altta (doğal akış: üstte işlem, altta sonuç)
   div.innerHTML = `<div class="avatar">${avatar}</div><div class="bubble">${imgHtml}${chipsHtml}${thinkingHtml}${toolHtml}<p>${html}</p></div>`
   chat.appendChild(div)
   if(role==="user") chat.scrollTop = chat.scrollHeight
@@ -995,7 +995,7 @@ async function send(){
 
   let typing = document.createElement("div")
   typing.className="msg assistant"
-  typing.innerHTML=`<div class="avatar">Q</div><div class="bubble">⏳ Writing...</div>`
+  typing.innerHTML=`<div class="avatar">Q</div><div class="bubble">⏳ 正在撰寫...</div>`
   chat.appendChild(typing); autoScroll()
   abortController = new AbortController()
   isGenerating = true
@@ -1028,7 +1028,7 @@ async function send(){
         loopMessages[lastIdx].content += smithHint
         messages[messages.length - 1].content += smithHint
       }
-      typing.innerHTML = `<div class="avatar">Q</div><div class="bubble"><div style="font-size:11px;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:6px">🤖 Smith • <span style="color:var(--muted)">Context → Action → Verify</span> <span style="margin-left:auto;font-size:10px;background:rgba(99,102,241,.15);padding:2px 6px;border-radius:99px;color:var(--accent)">OTONOM</span></div>⏳ Writing...</div>`
+      typing.innerHTML = `<div class="avatar">Q</div><div class="bubble"><div style="font-size:11px;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:6px">🤖 Smith • <span style="color:var(--muted)">Context → Action → Verify</span> <span style="margin-left:auto;font-size:10px;background:rgba(99,102,241,.15);padding:2px 6px;border-radius:99px;color:var(--accent)">OTONOM</span></div>⏳ 正在撰寫...</div>`
     }
 
     const useStream = $("#streamToggle") ? $("#streamToggle").checked : true
@@ -1073,13 +1073,13 @@ async function send(){
           if(fullContent){
             html += `<p>${escapeHtml(fullContent).replace(/\n/g,"<br>")}<span class="stream-cursor"></span></p>`
           } else {
-            html += `<p style="color:var(--muted);font-size:12px">${fullThinking ? "Thinking..., cevap hazırlanıyor..." : "⏳ Writing..."}<span class="stream-cursor"></span></p>`
+            html += `<p style="color:var(--muted);font-size:12px">${fullThinking ? "正在思考並準備回答..." : "⏳ 正在撰寫..."}<span class="stream-cursor"></span></p>`
           }
           bubbleEl.innerHTML = html
           autoScroll()
         }
         // initial
-        bubbleEl.innerHTML = `<p style="color:var(--muted)">⏳ Writing...</p>`
+        bubbleEl.innerHTML = `<p style="color:var(--muted)">⏳ 正在撰寫...</p>`
         while(true){
           const {done, value} = await reader.read()
           if(done) break
@@ -1147,7 +1147,7 @@ async function send(){
           html = html.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+)\)/g, (m, alt, url)=>{
             const safeAlt = escapeHtml(alt)
             const safeUrl = url.replace(/"/g, "&quot;")
-            return `<div style="margin:10px 0"><img src="${safeUrl}" alt="${safeAlt}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted2);margin-top:4px">🎨 ${safeAlt} • <a href="${safeUrl}" target="_blank" style="color:var(--accent)">Open full size</a></div></div>`
+            return `<div style="margin:10px 0"><img src="${safeUrl}" alt="${safeAlt}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted2);margin-top:4px">🎨 ${safeAlt} • <a href="${safeUrl}" target="_blank" style="color:var(--accent)">開啟原始尺寸</a></div></div>`
           })
           html = html.replace(/(?<!["'=\(])(https?:\/\/image\.pollinations\.ai\/prompt\/[^\s<"]+)/g, (m, url)=>{
             if(html.includes(`src="${url}"`)) return m
@@ -1165,25 +1165,25 @@ async function send(){
           if(th){
             thinkingHtml = `<details class="thinking"><summary>💭 Thinking process (${th.length} karakter)</summary><div style="white-space:pre-wrap;margin-top:6px">${escapeHtml(th)}</div></details>`
           }
-          // Eğer generate_image kullanıldıysa ve model görseli eklemediyse, biz ekleyelim
+          // Eğer generate_image kullanıldıysa ve model 張圖片i eklemediyse, biz ekleyelim
           const pollinationsUrls = toolResultsAll.map(r=> String(r).match(/https?:\/\/image\.pollinations\.ai\/prompt\/[^\s"']+/)?.[0]).filter(Boolean)
           if(pollinationsUrls.length && !html.includes("image.pollinations.ai")){
-            const imgs = pollinationsUrls.map(u=> `<div style="margin:12px 0"><img src="${u}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted);margin-top:4px">🎨 Oluşturulan görsel • <a href="${u}" target="_blank" style="color:var(--accent)">Open full size</a></div></div>`).join("")
+            const imgs = pollinationsUrls.map(u=> `<div style="margin:12px 0"><img src="${u}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted);margin-top:4px">🎨 已產生的圖片 • <a href="${u}" target="_blank" style="color:var(--accent)">開啟原始尺寸</a></div></div>`).join("")
             html += imgs
           }
           let toolResultHtml = ""
           if(toolResultsAll.length > 0){
-            // Image varsa toolResult'ta tekrar büyük görsel gösterme, sadece küçük meta göster
+            // Image varsa toolResult'ta tekrar büyük 張圖片 gösterme, sadece küçük meta göster
             const hasPollinations = pollinationsUrls.length>0
             if(hasPollinations){
               // Zaten html'e ekledik, toolResult'ta sadece metin göster
-              toolResultHtml = `<div class="meta" style="border-color:#22c55e;font-size:11px"><b>✅ Generate imageildi</b> • ${pollinationsUrls.length} görsel • <a href="${pollinationsUrls[0]}" target="_blank" style="color:var(--accent)">Link</a></div>`
+              toolResultHtml = `<div class="meta" style="border-color:#22c55e;font-size:11px"><b>✅ 圖片已產生</b> • ${pollinationsUrls.length} 張圖片 • <a href="${pollinationsUrls[0]}" target="_blank" style="color:var(--accent)">連結</a></div>`
             } else {
-              toolResultHtml = `<div class="meta" style="border-color:#22c55e"><b>✅ Tool Sonuçları:</b><br>${toolResultsAll.map(r=> escapeHtml(r)).join("<br><br>")}</div>`
+              toolResultHtml = `<div class="meta" style="border-color:#22c55e"><b>✅ 工具結果：</b><br>${toolResultsAll.map(r=> escapeHtml(r)).join("<br><br>")}</div>`
             }
           }
           const bubbleEl = typing.querySelector(".bubble")
-          // Sıra düzeltildi: Tool üstte, görsel en altta -> alta kaydırınca görsel görülür
+          // Sıra düzeltildi: Tool üstte, 張圖片 en altta -> alta kaydırınca 張圖片 görülür
           bubbleEl.innerHTML = `${thinkingHtml}${toolResultHtml}<p>${html}</p>`
           // Image varsa direkt en alta kaydır
           if(pollinationsUrls.length) setTimeout(()=> chat.scrollTop = chat.scrollHeight, 80)
@@ -1204,7 +1204,7 @@ async function send(){
 
       // Tool var -> calistir
       // streaming'de typing içeriği tool bilgisiyle değiştir, yeni typing oluşturma
-      typing.innerHTML=`<div class="avatar">Q</div><div class="bubble">🔧 Running tools... (iter ${iter}: ${toolCalls.length} tool)</div>`
+      typing.innerHTML=`<div class="avatar">Q</div><div class="bubble">🔧 正在執行工具...（第 ${iter} 輪，共 ${toolCalls.length} 個工具）</div>`
 
       // Ollama spec: önce assistant tool_calls messagesı, sonra tool messagesları
       const assistantToolMsg = { role:"assistant", content: content || "", tool_calls: toolCalls }
@@ -1221,7 +1221,7 @@ async function send(){
       // ara messages olarak goster
       if(iter === 1){
         try{ typing.remove() }catch{}
-        addMsg("assistant", content || "Araçlar çalıştırıldı...", {thinking, toolCalls, toolResults: iterResults})
+        addMsg("assistant", content || "工具已執行...", {thinking, toolCalls, toolResults: iterResults})
         // yeni typing for next iter - streaming için doğru referansı sakla
         const nextTyping = document.createElement("div")
         nextTyping.className="msg assistant"
@@ -1231,7 +1231,7 @@ async function send(){
         typing = nextTyping
       } else {
         // intermediate tool call göster
-        addMsg("assistant", `🔧 Iter ${iter} tool sonuçları:`, {toolCalls, toolResults: iterResults})
+        addMsg("assistant", `🔧 第 ${iter} 輪工具結果：`, {toolCalls, toolResults: iterResults})
         const el=document.getElementById("typing-loop")
         if(el) el.innerHTML=`<div class="avatar">Q</div><div class="bubble">⏳ Evaluating results... (iter ${iter+1})</div>`
         // typing zaten nextTyping'i gösteriyor, el ile aynı
@@ -1266,7 +1266,7 @@ async function send(){
             const sRes = await fetch("/api/run-sandbox", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({filename: fname})})
             const sj = await sRes.json()
             if(sj.ok){
-              addMsg("assistant", `✅ Smith Verify: Sandbox success • \`${fname}\` sorunsuz çalıştı`, {})
+              addMsg("assistant", `✅ Smith 驗證：沙盒執行成功 • \`${fname}\` 執行正常`, {})
             } else {
               addMsg("assistant", `⚠️ Smith Verify: Sandbox error • \`${fname}\`\n\`\`\`\n${(sj.error||sj.output||"").slice(0,600)}\n\`\`\`\nSmith otomatik düzeltme öneriyor.`, {})
             }
@@ -1301,8 +1301,8 @@ async function send(){
     updateCtx(); updateHistory()
     const totalDuration = lastData ? (lastData.total_duration/1e9).toFixed(1) : "?"
     const evalCount = lastData ? (lastData.eval_count||"?") : "?"
-    lastMeta.innerHTML = `<b>Model:</b> ${model}<br><b>Süre:</b> ${totalDuration}s<br><b>Tokens:</b> ${evalCount} • <b>Thinking:</b> ${finalThinking? finalThinking.length+" char": lastThinking? lastThinking.length+" char":"yok"}<br><b>Tools:</b> ${toolResultsAll.length} sonuç (${iter} iter)`
-    connStatus.textContent="● Connected"; connStatus.style.color="#22c55e"
+    lastMeta.innerHTML = `<b>Model:</b> ${model}<br><b>耗時：</b> ${totalDuration}s<br><b>Token：</b> ${evalCount} • <b>思考：</b> ${finalThinking? finalThinking.length+" char": lastThinking? lastThinking.length+" char":"yok"}<br><b>工具：</b> ${toolResultsAll.length} 個結果（${iter} 輪）`
+    connStatus.textContent="● 已連線"; connStatus.style.color="#22c55e"
     // dosyalar panelini guncelle
     if(toolResultsAll.length){
       for(const r of toolResultsAll.slice(0,2)){
@@ -1330,12 +1330,12 @@ async function send(){
       try{ typing.remove() }catch{}
       const el=document.getElementById("typing-loop"); if(el) el.remove()
       let msg = e.message || String(e)
-      let friendly = "❌ Hata: " + msg
+      let friendly = "❌ 錯誤：" + msg
       if(msg.includes("0xc0000409") || msg.includes("stack-based buffer") || msg.includes("CUDA error") || msg.includes("llama-server")){
         friendly = `❌ **Model crashed (CUDA / Bellek hatası)**\n\n\`\`\`\n${msg.slice(0,500)}\n\`\`\`\n\n**Suggested fixes:**\n• Reduce context: \`num_ctx\` 32K → **8K** yap\n• Thinking'i **OFF** yap (hızlı mod)\n• Daha küçük model dene: \`qwen2.5-coder:7b\` veya \`llama3.1:8b\`\n• Ollama'yı yeniden başlat: CMD'de \`ollama serve\` ve \`nvidia-smi\` kontrol et\n• Hala oluyorsa: \`ollama create qwen35-agent -f Modelfile\` ile modeli yeniden oluştur`
       }
       addMsg("assistant", friendly)
-      connStatus.textContent="● Hata"; connStatus.style.color="#ef4444"
+      connStatus.textContent="● 錯誤"; connStatus.style.color="#ef4444"
     }
   }finally{
     isGenerating = false
@@ -1357,8 +1357,8 @@ function updateHistory(){
 async function checkConn(){
   try{
     const r = await fetch(`${OLLAMA}/api/tags`); if(!r.ok) throw 0
-    connStatus.textContent="● Connected"; connStatus.style.color="#22c55e"
-  }catch{ connStatus.textContent="● Connected değil"; connStatus.style.color="#ef4444" }
+    connStatus.textContent="● 已連線"; connStatus.style.color="#22c55e"
+  }catch{ connStatus.textContent="● 已連線 değil"; connStatus.style.color="#ef4444" }
 }
 checkConn(); setInterval(checkConn, 5000)
 
@@ -1436,7 +1436,7 @@ try{
     // Hala boşsa varsayılan oluştur
     if(conversations.length===0){
       const id = Date.now().toString(36)
-      conversations = [{id, title: "Yeni Chat", messages: [], createdAt: Date.now(), updatedAt: Date.now()}]
+      conversations = [{id, title: "新對話", messages: [], createdAt: Date.now(), updatedAt: Date.now()}]
       activeId = id
       saveConversations()
     }
