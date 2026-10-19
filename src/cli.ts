@@ -133,7 +133,30 @@ Seçenekler:
   if (mode === "vision" && imagePath) {
     result = await agent.vision(imagePath, prompt)
   } else if (mode === "code") {
-    result = await agent.code(prompt)
+    result = await agent.chatWithTools({
+      messages: [
+        {
+          role: "system",
+          content: [
+            "你是執行導向的軟體開發 Agent。",
+            "預設使用繁體中文回應，程式碼、命令、識別字及錯誤訊息保留原文。",
+            "當任務涉及實際專案或檔案時，必須使用工具完成，不得只提供範例程式碼。",
+            "先使用 read_file、list_files 或 search_files 了解現況，再進行修改。",
+            "修改後必須使用 run_bash 或 run_sandbox 執行編譯、測試或驗證。",
+            "若 Exit Code 非 0，必須讀取 STDOUT 與 STDERR，修正後重新測試。",
+            "只有最後一次驗證的 Exit Code 為 0，且要求的結果已實際存在，才能宣告完成。",
+            "不得偽造工具輸出，不得將尚未驗證的結果宣告為成功。",
+          ].join("\n"),
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
+      think: true,
+      numCtx,
+      maxIterations: 12,
+    })
   } else if (mode === "math") {
     result = await agent.math(prompt)
   } else {
