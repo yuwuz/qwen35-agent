@@ -170,6 +170,10 @@ export const codeTools: Tool[] = [
         type: "object",
         properties: {
           command: { type: "string", description: "Shell command to execute" },
+          timeout_ms: {
+            type: "number",
+            description: "Optional timeout in milliseconds. Minimum 1000, maximum 600000, default 120000.",
+          },
         },
         required: ["command"],
       },
