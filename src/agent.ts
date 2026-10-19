@@ -339,8 +339,55 @@ export class Qwen35Agent {
       }
 
       const toolCalls = data.message.tool_calls ?? []
+
       if (toolCalls.length === 0) {
-        return { ...lastResult, iterations: iter + 1, toolResults: allToolResults }
+        const finalResponse = String(data.message.content ?? "").trim()
+
+        if (finalResponse) {
+          return {
+            ...lastResult,
+            response: finalResponse,
+            iterations: iter + 1,
+            toolResults: allToolResults,
+          }
+        }
+
+        const hasFinalResponseRequest = messages.some(
+          message =>
+            message.role === "user" &&
+            message.content.includes("[FINAL_RESPONSE_REQUIRED]")
+        )
+
+        if (hasFinalResponseRequest) {
+          return {
+            ...lastResult,
+            response: "工具執行完成，但模型未產生最終回答。",
+            iterations: iter + 1,
+            toolResults: allToolResults,
+          }
+        }
+
+        messages = [
+          ...messages,
+          {
+            role: "assistant",
+            content: data.message.thinking || "",
+          },
+          {
+            role: "user",
+            content: [
+              "[FINAL_RESPONSE_REQUIRED]",
+              "工具執行階段已結束。",
+              "不得重新執行任何工具。",
+              "請根據先前工具結果輸出最終回答。",
+              "全部要求及驗證成功時回答 PASS。",
+              "任一要求未完成或驗證失敗時回答 FAIL，並簡短說明。",
+              "必須輸出正式回答，不得只提供思考內容或保持空白。",
+            ].join("\n"),
+          },
+        ]
+
+        continue
       }
 
       // Tool'lari calistir
