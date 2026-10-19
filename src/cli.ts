@@ -137,10 +137,11 @@ Seçenekler:
   } else if (mode === "math") {
     result = await agent.math(prompt)
   } else {
-    result = await agent.chat({
+    result = await agent.chatWithTools({
       messages: [{ role: "user", content: prompt }],
       think,
       numCtx,
+      maxIterations: 8,
     })
   }
 
