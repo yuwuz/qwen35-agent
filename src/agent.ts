@@ -474,8 +474,13 @@ export class Qwen35Agent {
               : result
 
           const failed =
-            result.includes("Exit Code:") &&
-            !result.includes("Exit Code: 0")
+            result.startsWith("Tool Error:") ||
+            result.startsWith("FAIL") ||
+            result.includes("❌") ||
+            (
+              result.includes("Exit Code:") &&
+              !result.includes("Exit Code: 0")
+            )
 
           const statusIcon = failed ? "❌" : "✅"
 
