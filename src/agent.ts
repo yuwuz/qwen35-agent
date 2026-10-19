@@ -398,14 +398,102 @@ export class Qwen35Agent {
       }
       messages = [...messages, assistantMsg]
 
-      for (const tc of toolCalls) {
-        let args: Record<string, unknown> = tc.function.arguments as Record<string, unknown>
+      for (let toolIndex = 0; toolIndex < toolCalls.length; toolIndex++) {
+        const tc = toolCalls[toolIndex]
+
+        let args: Record<string, unknown> =
+          tc.function.arguments as Record<string, unknown>
+
         if (typeof args === "string") {
-          try { args = JSON.parse(args as string) } catch { args = {} }
+          try {
+            args = JSON.parse(args as string)
+          } catch {
+            args = {}
+          }
         }
-        const result = await executor!(tc.function.name, args)
+
+        const toolNumber = allToolResults.length + 1
+        const toolName = tc.function.name
+
+        if (options.toolTrace) {
+          const safeArgs = Object.fromEntries(
+            Object.entries(args).map(([key, value]) => {
+              const protectedKeys = [
+                "content",
+                "code",
+                "icerik",
+                "prompt",
+              ]
+
+              if (protectedKeys.includes(key.toLowerCase())) {
+                const text = String(value ?? "")
+                return [key, `[${text.length} chars]`]
+              }
+
+              if (typeof value === "string" && value.length > 500) {
+                return [
+                  key,
+                  `${value.slice(0, 500)}... [truncated, ${value.length} chars]`,
+                ]
+              }
+
+              return [key, value]
+            })
+          )
+
+          console.log(`\n🔧 [Tool ${toolNumber}] ${toolName}`)
+          console.log(
+            `   Arguments: ${JSON.stringify(safeArgs)}`
+          )
+        }
+
+        let result: string
+
+        try {
+          result = String(
+            await executor!(toolName, args)
+          )
+        } catch (error: any) {
+          result = [
+            `Tool Error: ${toolName}`,
+            `Message: ${String(
+              error?.message ??
+              error
+            )}`,
+          ].join("\n")
+        }
+
         allToolResults.push(result)
-        messages.push({ role: "tool", content: String(result) })
+
+        if (options.toolTrace) {
+          const maxResultLength = 2000
+          const resultPreview =
+            result.length > maxResultLength
+              ? `${result.slice(0, maxResultLength)}\n... [truncated, ${result.length} chars total]`
+              : result
+
+          const failed =
+            result.includes("Exit Code:") &&
+            !result.includes("Exit Code: 0")
+
+          const statusIcon = failed ? "❌" : "✅"
+
+          console.log(
+            `${statusIcon} [Tool ${toolNumber}] ${toolName}`
+          )
+          console.log("   Result:")
+          console.log(
+            resultPreview
+              .split("\n")
+              .map(line => `   ${line}`)
+              .join("\n")
+          )
+        }
+
+        messages.push({
+          role: "tool",
+          content: result,
+        })
       }
       // loop -> tekrar model cagir, tool sonuclariyla final cevap al
     }

@@ -156,6 +156,7 @@ Seçenekler:
       think: true,
       numCtx,
       maxIterations: 12,
+      toolTrace: true,
     })
   } else if (mode === "math") {
     result = await agent.math(prompt)
@@ -165,6 +166,7 @@ Seçenekler:
       think,
       numCtx,
       maxIterations: 8,
+      toolTrace: true,
     })
   }
 
