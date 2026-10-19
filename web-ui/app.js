@@ -807,7 +807,7 @@ function renderToolBox(tc, result, idx){
   const status = !hasResult ? "running" : (isError ? "error" : "success")
   const statusText = !hasResult ? "● 執行中" : (isError ? "● 錯誤" : "● 成功")
   const preview = hasResult ? String(result).slice(0,500) : ""
-  // generate_image için thumb’ı TOOL kutusunda gösterme — büyük 張圖片 zaten messagesın EN ALTINDA gösterilecek (tek 張圖片, kafa karışmasın)
+  // generate_image 的縮圖不在工具框重複顯示，完整圖片會顯示於訊息底部
   let imagePreview = ""
   const iconMap = {file:"📁", code:"💻", web:"🌐", image:"🎨", system:"⚙️"}
   return `<div class="tool-box">
@@ -840,7 +840,7 @@ function addMsg(role, content, opts={}){
     const safeUrl = url.replace(/"/g, "&quot;")
     return `<div style="margin:10px 0"><img src="${safeUrl}" alt="${safeAlt}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"><div style="display:none;font-size:11px;color:var(--muted);margin-top:4px">Image failed to load: <a href="${safeUrl}" target="_blank" style="color:var(--accent)">${safeUrl}</a></div><div style="font-size:11px;color:var(--muted2);margin-top:4px">🎨 ${safeAlt} • <a href="${safeUrl}" target="_blank" style="color:var(--accent)">開啟原始尺寸</a> • <button onclick="navigator.clipboard.writeText('${safeUrl}')" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0">🔗 複製</button></div></div>`
   })
-  // Pollinations raw URL'i direkt 張圖片e çevir (eğer markdown değilse) - sadece pollinations ve 張圖片 uzantıları
+  // 將 Pollinations 原始 URL 轉換為圖片，僅處理非 Markdown 圖片連結
   html = html.replace(/(?<!["'=])(https?:\/\/image\.pollinations\.ai\/prompt\/[^\s<"]+)/g, (m, url)=>{
     if(html.includes(`src="${url}"`)) return m // zaten img içinde
     return `<div style="margin:10px 0"><img src="${url}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted2);margin-top:4px"><a href="${url}" target="_blank" style="color:var(--accent)">🔗 ${url.slice(0,60)}...</a></div></div>`
@@ -849,7 +849,7 @@ function addMsg(role, content, opts={}){
   html = html.replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>")
   html = html.replace(/(?<!\*)\*([^*\n]+)\*(?!\*)/g, "<i>$1</i>")
   html = html.replace(/(?<!["'=\(])(https?:\/\/[^\s<"]+)/g, '<a href="$1" target="_blank" style="color:var(--accent)">$1</a>')
-  // Eğer toolResults içinde Pollinations 張圖片i var ve html'de yoksa, otomatik ekle (model sadece URL yazdıysa bile 張圖片 göster)
+  // 如果工具結果包含 Pollinations 圖片且 HTML 尚未顯示，則自動加入圖片
   if((opts.toolResults && opts.toolResults.length) || (opts.toolCalls && opts.toolCalls.some(tc=> tc.function.name==="generate_image"))){
     const allResults = (opts.toolResults || []).map(r=> String(r)).join(" ")
     const urls = [...allResults.matchAll(/https?:\/\/image\.pollinations\.ai\/prompt\/[^\s"']+/g)].map(m=>m[0])
@@ -876,7 +876,7 @@ function addMsg(role, content, opts={}){
       // zaten yukarıda res undefined ile running gösterir
     }
   } else if(opts.toolResults && opts.toolResults.length){
-    // Sadece sonuçlar - 張圖片 varsa tool meta'da tekrar gösterme, büyük 張圖片 zaten html'in EN ALTINDA eklenecek
+    // 僅顯示工具結果，圖片不在工具摘要中重複顯示
     const hasImage = opts.toolResults.some(r=> String(r).includes("image.pollinations.ai"))
     if(hasImage){
       toolHtml = opts.toolResults.map(r=>{
@@ -897,7 +897,7 @@ function addMsg(role, content, opts={}){
   if(opts.chips && opts.chips.length){
     chipsHtml = `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">` + opts.chips.map(c=> `<span style="display:inline-flex;align-items:center;gap:5px;padding:3px 7px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:11px;color:var(--text2)">${c.type==='url'?'🔗':'📄'} ${escapeHtml(c.name)}</span>`).join("") + `</div>`
   }
-  // Sıra düzeltildi: Tool üstte, 張圖片 en altta (doğal akış: üstte işlem, altta sonuç)
+  // 顯示順序：工具資訊在上，圖片結果在下
   div.innerHTML = `<div class="avatar">${avatar}</div><div class="bubble">${imgHtml}${chipsHtml}${thinkingHtml}${toolHtml}<p>${html}</p></div>`
   chat.appendChild(div)
   if(role==="user") chat.scrollTop = chat.scrollHeight
@@ -1165,7 +1165,7 @@ async function send(){
           if(th){
             thinkingHtml = `<details class="thinking"><summary>💭 Thinking process (${th.length} karakter)</summary><div style="white-space:pre-wrap;margin-top:6px">${escapeHtml(th)}</div></details>`
           }
-          // Eğer generate_image kullanıldıysa ve model 張圖片i eklemediyse, biz ekleyelim
+          // 若已使用 generate_image 但模型未加入圖片，則由介面補上
           const pollinationsUrls = toolResultsAll.map(r=> String(r).match(/https?:\/\/image\.pollinations\.ai\/prompt\/[^\s"']+/)?.[0]).filter(Boolean)
           if(pollinationsUrls.length && !html.includes("image.pollinations.ai")){
             const imgs = pollinationsUrls.map(u=> `<div style="margin:12px 0"><img src="${u}" style="max-width:100%;max-height:520px;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.15);display:block" loading="lazy" onerror="this.style.display='none'"><div style="font-size:11px;color:var(--muted);margin-top:4px">🎨 已產生的圖片 • <a href="${u}" target="_blank" style="color:var(--accent)">開啟原始尺寸</a></div></div>`).join("")
@@ -1173,7 +1173,7 @@ async function send(){
           }
           let toolResultHtml = ""
           if(toolResultsAll.length > 0){
-            // Image varsa toolResult'ta tekrar büyük 張圖片 gösterme, sadece küçük meta göster
+            // 若存在圖片，工具結果只顯示精簡摘要
             const hasPollinations = pollinationsUrls.length>0
             if(hasPollinations){
               // Zaten html'e ekledik, toolResult'ta sadece metin göster
@@ -1183,7 +1183,7 @@ async function send(){
             }
           }
           const bubbleEl = typing.querySelector(".bubble")
-          // Sıra düzeltildi: Tool üstte, 張圖片 en altta -> alta kaydırınca 張圖片 görülür
+          // 顯示順序：工具資訊在上，圖片在下，捲動到底部即可查看
           bubbleEl.innerHTML = `${thinkingHtml}${toolResultHtml}<p>${html}</p>`
           // Image varsa direkt en alta kaydır
           if(pollinationsUrls.length) setTimeout(()=> chat.scrollTop = chat.scrollHeight, 80)
@@ -1358,7 +1358,7 @@ async function checkConn(){
   try{
     const r = await fetch(`${OLLAMA}/api/tags`); if(!r.ok) throw 0
     connStatus.textContent="● 已連線"; connStatus.style.color="#22c55e"
-  }catch{ connStatus.textContent="● 已連線 değil"; connStatus.style.color="#ef4444" }
+  }catch{ connStatus.textContent="● 未連線"; connStatus.style.color="#ef4444" }
 }
 checkConn(); setInterval(checkConn, 5000)
 
