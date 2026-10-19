@@ -1354,26 +1354,183 @@ function updateHistory(){
   }).join("")
 }
 
+function formatModelSize(bytes){
+  const size = Number(bytes)
+
+  if(!Number.isFinite(size) || size <= 0){
+    return ""
+  }
+
+  const gb = size / 1024 / 1024 / 1024
+
+  if(gb >= 1){
+    return `${gb.toFixed(1)} GB`
+  }
+
+  const mb = size / 1024 / 1024
+  return `${mb.toFixed(0)} MB`
+}
+
+function normalizeModelName(name){
+  return String(name || "").trim().toLowerCase()
+}
+
+async function loadOllamaModels(){
+  const previousValue =
+    modelSelect.value ||
+    sessionStorage.getItem("qwen-selected-model") ||
+    ""
+
+  modelSelect.disabled = true
+  modelSelect.innerHTML =
+    '<option value="">正在讀取 Ollama 模型...</option>'
+
+  try{
+    const response = await fetch(`${OLLAMA}/api/tags`)
+
+    if(!response.ok){
+      throw new Error(
+        `無法取得 Ollama 模型清單：HTTP ${response.status}`
+      )
+    }
+
+    const data = await response.json()
+    const models = Array.isArray(data.models)
+      ? data.models
+      : []
+
+    if(models.length === 0){
+      modelSelect.innerHTML =
+        '<option value="">沒有可用的 Ollama 模型</option>'
+
+      $("#modelInfo").textContent =
+        "請先使用 ollama pull 或 ollama create 建立模型"
+
+      const headerModel = $("#headerModel")
+      if(headerModel){
+        headerModel.textContent = "沒有模型"
+      }
+
+      return
+    }
+
+    modelSelect.innerHTML = ""
+
+    for(const model of models){
+      const name =
+        model.name ||
+        model.model ||
+        ""
+
+      if(!name){
+        continue
+      }
+
+      const option = document.createElement("option")
+      option.value = name
+
+      const sizeText = formatModelSize(model.size)
+      option.textContent =
+        sizeText
+          ? `${name} (${sizeText})`
+          : name
+
+      modelSelect.appendChild(option)
+    }
+
+    const availableOptions =
+      Array.from(modelSelect.options)
+
+    const findModel = wanted =>
+      availableOptions.find(
+        option =>
+          normalizeModelName(option.value) ===
+          normalizeModelName(wanted)
+      )
+
+    const preferredModel =
+      findModel(previousValue) ||
+      findModel("qwen35-agent:latest") ||
+      findModel("qwen35-agent") ||
+      availableOptions[0]
+
+    if(preferredModel){
+      modelSelect.value = preferredModel.value
+    }
+
+    const selectedName = modelSelect.value
+
+    sessionStorage.setItem(
+      "qwen-selected-model",
+      selectedName
+    )
+
+    const headerModel = $("#headerModel")
+    if(headerModel){
+      headerModel.textContent = selectedName
+    }
+
+    const selectedModel = models.find(
+      model =>
+        normalizeModelName(model.name || model.model) ===
+        normalizeModelName(selectedName)
+    )
+
+    const selectedSize = selectedModel
+      ? formatModelSize(selectedModel.size)
+      : ""
+
+    $("#modelInfo").textContent = [
+      selectedName,
+      selectedSize,
+      "本機 Ollama"
+    ].filter(Boolean).join(" • ")
+
+  }catch(error){
+    modelSelect.innerHTML =
+      '<option value="">Ollama 模型載入失敗</option>'
+
+    $("#modelInfo").textContent =
+      String(error?.message || error)
+
+    const headerModel = $("#headerModel")
+    if(headerModel){
+      headerModel.textContent = "載入失敗"
+    }
+  }finally{
+    modelSelect.disabled = false
+  }
+}
 async function checkConn(){
   try{
     const r = await fetch(`${OLLAMA}/api/tags`); if(!r.ok) throw 0
     connStatus.textContent="● 已連線"; connStatus.style.color="#22c55e"
   }catch{ connStatus.textContent="● 未連線"; connStatus.style.color="#ef4444" }
 }
-checkConn(); setInterval(checkConn, 5000)
+checkConn()
+loadOllamaModels()
+setInterval(checkConn, 5000)
 
-modelSelect.onchange = ()=>{
-  const v = modelSelect.value
-  const map = {
-    "qwen35-agent":"256K • Vision • Thinking • Tools ★",
-    "qwen3.5:9b":"256K • Vision • 6.6GB",
-    "qwen2.5-coder:7b":"32K • Kod Uzmanı • 4.7GB",
-    "llama3.1:8b-instruct-q4_K_M":"128K • Genel • 4.9GB",
-    "dolphin-llama3:8b":"8K • Sansürsüz • 4.7GB",
+modelSelect.onchange = () => {
+  const selectedModel = modelSelect.value
+
+  sessionStorage.setItem(
+    "qwen-selected-model",
+    selectedModel
+  )
+
+  const headerModel = $("#headerModel")
+  if(headerModel){
+    headerModel.textContent = selectedModel
   }
-  $("#modelInfo").textContent = map[v] || ""
-  const hm = $("#headerModel")
-  if(hm) hm.textContent = v
+
+  const selectedText =
+    modelSelect.options[
+      modelSelect.selectedIndex
+    ]?.textContent || selectedModel
+
+  $("#modelInfo").textContent =
+    `${selectedText} • 本機 Ollama`
 }
 // Header model initial
 try{ const hm=$("#headerModel"); if(hm) hm.textContent = modelSelect.value }catch{}
