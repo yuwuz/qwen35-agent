@@ -8,6 +8,7 @@
  *   bun run src/cli.ts --vision image.png "bu resimde ne var?"
  *   bun run src/cli.ts --code "bir todo app yap"
  *   bun run src/cli.ts --math "x^2 + 5x + 6 = 0 denklemini çöz"
+ *   bun run src/cli.ts --model qwen3.5:9b --base-url http://127.0.0.1:11434 "test"
  */
 
 import { Qwen35Agent } from "./agent"
@@ -16,10 +17,44 @@ import { SmithAgent } from "./smith"
 const args = process.argv.slice(2)
 
 async function main() {
-  const agent = new Qwen35Agent({ model: "qwen3.5:9b" })
-  const smith = new SmithAgent({ model: "qwen35-agent" })
+  // Model ve base URL varsayılanları (parametrelerden önce ayarla)
+  let selectedModel: string | undefined = undefined
+  let selectedBaseUrl: string | undefined = undefined
+  
+  // Flag parsing - Model ve base-url parametrelerini öncelikle parse et
+  for (let i = 0; i < args.length; i++) {
+    const a = args[i]
+    if (a === "--model") {
+      if (++i >= args.length) {
+        console.error("Hata: --model için değer gerekli!")
+        process.exit(1)
+      }
+      selectedModel = args[i]
+    } else if (a === "--base-url") {
+      if (++i >= args.length) {
+        console.error("Hata: --base-url için değer gerekli!")
+        process.exit(1)
+      }
+      selectedBaseUrl = args[i]
+    }
+  }
+  
+  // Model ve base-url varsayılanları ayarla (parametrelerden sonra)
+  const model = selectedModel ?? process.env.QWEN_AGENT_MODEL ?? "qwen35-agent:latest"
+  const baseUrl = selectedBaseUrl ?? process.env.OLLAMA_BASE_URL ?? "http://127.0.0.1:11434"
 
-  if (args.length === 0 || args.includes("--help") || args.includes("-h")) {
+  // 使用實際選取的模型與 Ollama API 位址建立 Agent
+  const agent = new Qwen35Agent({
+    model,
+    baseUrl,
+  })
+
+  const smith = new SmithAgent({
+    model,
+    baseUrl,
+  })
+
+  if (args.includes("--help") || args.includes("-h")) {
     console.log(`
 Qwen35-Agent - Qwen3.5:9b Özelleştirilmiş Agent (Smith Otonom Modlu)
 
@@ -36,6 +71,8 @@ Seçenekler:
   --ctx <number>       Context boyutu (varsayılan 32768, max 262144)
   --info               Model bilgisi
   --test               Hızlı test
+  --model <name>       Ollama 模型名稱（預設：qwen35-agent:latest）
+  --base-url <url>     Ollama API 位址（預設：http://127.0.0.1:11434）
 
 Örnekler:
   bun run src/cli.ts "Merhaba nasılsın?"
@@ -46,13 +83,13 @@ Seçenekler:
   bun run src/cli.ts --math "3x + 2y = 12, 5x - y = 7 denklemini çöz"
 
 Özellikler: vision, thinking, 256K context, 15 tools, smith otonom, kum havuzu, 201 dil
-`)
+    `)
     process.exit(0)
   }
 
   if (args.includes("--info")) {
     console.log("Qwen35-Agent Info:", agent.info)
-    const res = await fetch("http://localhost:11434/api/tags").then((r) => r.json()).catch(() => null)
+    const res = await fetch(`${baseUrl}/api/tags`).then((r) => r.json()).catch(() => null)
     console.log("Ollama modeller:", res ? (res as { models: { name: string }[] }).models.map((m) => m.name) : "bağlantı yok")
     process.exit(0)
   }
@@ -72,7 +109,7 @@ Seçenekler:
     process.exit(0)
   }
 
-  // Flag parsing
+  // Flag parsing - Diğer flag'leri parse et
   let prompt = ""
   let think: boolean | undefined = undefined
   let mode: "chat" | "code" | "math" | "vision" = "chat"
@@ -80,28 +117,97 @@ Seçenekler:
   let numCtx: number | undefined = undefined
   let smithMode = false
 
+  const promptParts: string[] = []
+
   for (let i = 0; i < args.length; i++) {
     const a = args[i]
-    if (a === "--think") think = true
-    else if (a === "--no-think") think = false
-    else if (a === "--smith") smithMode = true
-    else if (a === "--code") mode = "code"
-    else if (a === "--math") mode = "math"
-    else if (a === "--vision") {
-      mode = "vision"
-      imagePath = args[++i]
-    } else if (a === "--ctx") {
-      numCtx = parseInt(args[++i], 10)
-    } else if (!a.startsWith("--")) {
-      prompt = args.slice(i).join(" ")
-      break
+
+    if (a === "--model" || a === "--base-url") {
+      i++
+      continue
     }
+
+    if (a === "--think") {
+      think = true
+      continue
+    }
+
+    if (a === "--no-think") {
+      think = false
+      continue
+    }
+
+    if (a === "--smith") {
+      smithMode = true
+      continue
+    }
+
+    if (a === "--code") {
+      mode = "code"
+      continue
+    }
+
+    if (a === "--math") {
+      mode = "math"
+      continue
+    }
+
+    if (a === "--vision") {
+      mode = "vision"
+
+      const value = args[++i]
+      if (!value || value.startsWith("--")) {
+        console.error("錯誤：--vision 缺少圖片路徑。")
+        process.exit(2)
+      }
+
+      imagePath = value
+      continue
+    }
+
+    if (a === "--ctx") {
+      const value = args[++i]
+
+      if (!value || value.startsWith("--")) {
+        console.error("錯誤：--ctx 缺少數值。")
+        process.exit(2)
+      }
+
+      numCtx = Number.parseInt(value, 10)
+
+      if (!Number.isInteger(numCtx) || numCtx <= 0) {
+        console.error(`錯誤：無效的 --ctx 數值：${value}`)
+        process.exit(2)
+      }
+
+      continue
+    }
+
+    if (
+      a === "--help" ||
+      a === "-h" ||
+      a === "--info" ||
+      a === "--test" ||
+      a === "--trace-tools"
+    ) {
+      continue
+    }
+
+    if (a.startsWith("--")) {
+      console.error(`錯誤：未知選項 ${a}`)
+      process.exit(2)
+    }
+
+    promptParts.push(a)
   }
+
+  prompt = promptParts.join(" ").trim()
 
   if (!prompt) {
     console.error("Prompt gerekli! --help ile bak")
     process.exit(1)
   }
+
 
   // Smith modu - tam otonom
   if (smithMode) {
@@ -124,7 +230,11 @@ Seçenekler:
     return
   }
 
-  console.log(`\n🤖 Qwen35-Agent (${think ? "thinking ON" : "thinking OFF"}${mode !== "chat" ? `, mode=${mode}` : ""})`)
+  console.log(`\n🤖 Qwen35-Agent`)
+  console.log(`🧠 Model: ${model}`)
+  console.log(`🌐 Base URL: ${baseUrl}`)
+  console.log(`⚙️ Mode: ${mode}`)
+  console.log(`💭 Thinking: ${think ? "ON" : "OFF"}`)
   console.log(`📝 Prompt: ${prompt.slice(0, 80)}${prompt.length > 80 ? "..." : ""}\n`)
 
   const start = Date.now()
