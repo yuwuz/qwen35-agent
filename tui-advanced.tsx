@@ -11,7 +11,7 @@ import { spawn } from "node:child_process"
 // ── Config ──
 const MODEL_DEFAULT = "qwen35-agent"
 const BASE_URL = "http://127.0.0.1:11434"
-const DESKTOP = "C:\\Users\\excalibur\\Desktop"
+const DESKTOP = "A:\\AI\\qwen35-agent-test-workspace"
 const HISTORY_FILE = path.join(DESKTOP, ".qwen35-history.json")
 const CONFIG_FILE = path.join(DESKTOP, ".qwen35-config.json")
 

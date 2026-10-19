@@ -119,7 +119,7 @@ export class SmithAgent {
           }
           if (tc.function.name.includes("file") || tc.function.name.includes("write")) {
             const p = (tc.function.arguments as Record<string,string>).path
-            if (p) await rememberFile(p.includes(":") ? p : `C:\\Users\\excalibur\\Desktop\\${p}`)
+            if (p) await rememberFile(p.includes(":") ? p : `A:\\AI\\qwen35-agent-test-workspace\\${p}`)
           }
           await runHooks("post_write", { path: (tc.function.arguments as Record<string,string>).path, tool: tc.function.name })
           await learnFromSuccess(`${tc.function.name} başarılı`, tc.function.name)

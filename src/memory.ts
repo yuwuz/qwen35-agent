@@ -7,7 +7,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
-const DESKTOP = "C:\\Users\\excalibur\\Desktop"
+const DESKTOP = "A:\\AI\\qwen35-agent-test-workspace"
 const MEMORY_FILE = path.join(DESKTOP, "qwen-memory.json")
 
 export interface MemoryFile {

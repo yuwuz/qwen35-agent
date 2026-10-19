@@ -8,7 +8,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
-const DESKTOP = "C:\\Users\\excalibur\\Desktop"
+const DESKTOP = "A:\\AI\\qwen35-agent-test-workspace"
 const LEARNING_FILE = path.join(DESKTOP, "qwen-learning.json")
 const AGENT_DIR = path.join(DESKTOP, "qwen35-agent")
 

@@ -9,7 +9,7 @@ import { spawn, exec } from "node:child_process"
 
 const MODEL = "qwen35-agent"
 const BASE_URL = "http://127.0.0.1:11434"
-const DESKTOP = "C:\\Users\\excalibur\\Desktop"
+const DESKTOP = "A:\\AI\\qwen35-agent-test-workspace"
 
 const colors = {
   reset: "\x1b[0m",
@@ -52,7 +52,7 @@ function banner() {
 
 // === TOOLS (14 tools - web-ui ile aynı) ===
 const TOOLS = [
-  {type:"function", function:{name:"write_file", description:"Write content to a file. CRITICAL: If no directory specified, use ONLY filename like 'hello.txt' - auto-saves to Desktop C:\\Users\\excalibur\\Desktop\\.", parameters:{type:"object", properties:{path:{type:"string"}, content:{type:"string"}}, required:["path","content"]}}},
+  {type:"function", function:{name:"write_file", description:"Write content to a file. CRITICAL: If no directory specified, use ONLY filename like 'hello.txt' - auto-saves to Desktop A:\\AI\\qwen35-agent-test-workspace\\.", parameters:{type:"object", properties:{path:{type:"string"}, content:{type:"string"}}, required:["path","content"]}}},
   {type:"function", function:{name:"read_file", description:"Read file content. Supports offset/limit.", parameters:{type:"object", properties:{path:{type:"string"}, offset:{type:"number"}, limit:{type:"number"}}, required:["path"]}}},
   {type:"function", function:{name:"list_files", description:"List files in directory.", parameters:{type:"object", properties:{path:{type:"string"}}, required:["path"]}}},
   {type:"function", function:{name:"edit_file", description:"Edit file by replacing exact string.", parameters:{type:"object", properties:{path:{type:"string"}, old_string:{type:"string"}, new_string:{type:"string"}}, required:["path","old_string","new_string"]}}},

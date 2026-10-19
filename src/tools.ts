@@ -14,11 +14,11 @@ export const fileTools: Tool[] = [
     type: "function",
     function: {
       name: "write_file",
-      description: "Write content to a file. Creates directories if needed. CRITICAL: If user does NOT specify a directory, use ONLY the filename like 'hello.txt' - system will automatically save to Desktop (C:\\Users\\excalibur\\Desktop\\). Never use other directories unless user explicitly says so.",
+      description: "Write content to a file. Creates directories if needed. CRITICAL: If user does NOT specify a directory, use ONLY the filename like 'hello.txt' - system will automatically save to Desktop (A:\\AI\\qwen35-agent-test-workspace\\). Never use other directories unless user explicitly says so.",
       parameters: {
         type: "object",
         properties: {
-          path: { type: "string", description: "File path - use just filename (e.g. 'hello.txt') for Desktop, or full path like C:\\Users\\excalibur\\Desktop\\hello.txt. If no directory given, system auto-saves to Desktop." },
+          path: { type: "string", description: "File path - use just filename (e.g. 'hello.txt') for Desktop, or full path like A:\\AI\\qwen35-agent-test-workspace\\hello.txt. If no directory given, system auto-saves to Desktop." },
           content: { type: "string", description: "File content to write" },
         },
         required: ["path", "content"],
@@ -49,7 +49,7 @@ export const fileTools: Tool[] = [
       parameters: {
         type: "object",
         properties: {
-          path: { type: "string", description: "Directory path (e.g. C:\\Users\\excalibur\\Desktop or . )" },
+          path: { type: "string", description: "Directory path (e.g. A:\\AI\\qwen35-agent-test-workspace or . )" },
         },
         required: ["path"],
       },
@@ -240,7 +240,7 @@ export const allTools: Tool[] = [...fileTools, ...codeTools, ...extraTools, ...i
 export const allToolsWithBook: Tool[] = [...allTools, ...bookTools]
 
 // Desktop fallback for Node execution
-const DESKTOP_FALLBACK = "C:\\Users\\excalibur\\Desktop"
+const DESKTOP_FALLBACK = "A:\\AI\\qwen35-agent-test-workspace"
 
 function resolveNodePath(p: string): string {
   if (!p) return p

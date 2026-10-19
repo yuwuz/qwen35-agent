@@ -112,7 +112,7 @@ saveFileBtn.onclick = async ()=>{
   // Gerçekten yaz: web server API ile
   try{
     const isAbs = name.includes(":") || name.startsWith("/") || name.startsWith("C:")
-    const target = isAbs ? name : `C:\\Users\\excalibur\\Desktop\\${name}`
+    const target = isAbs ? name : `A:\\AI\\qwen35-agent-test-workspace\\${name}`
     const r = await fetch("/api/write-file", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({path: target, content})})
     const j = await r.json()
     if(j.ok){
@@ -127,7 +127,7 @@ loadFileBtn.onclick = async ()=>{
   const name = fileNameEl.value.trim()
   if(!name) return fileStatus.textContent="❌ Enter file name"
   try{
-    const target = name.includes(":") ? name : `C:\\Users\\excalibur\\Desktop\\${name}`
+    const target = name.includes(":") ? name : `A:\\AI\\qwen35-agent-test-workspace\\${name}`
     const r = await fetch("/api/read-file", {method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({path: target})})
     const j = await r.json()
     if(j.ok){ fileContentEl.value = j.content; fileStatus.textContent="✅ Read: "+target }
@@ -315,7 +315,7 @@ function getTools(){
     {type:"function", function:{name:"get_system_info", description:"Get system info: OS, cwd, Desktop files, Ollama models.", parameters:{type:"object", properties:{}, required:[]}}},
   )
   if($("#toolFile").checked) tools.push(
-    {type:"function", function:{name:"write_file", description:"Write content to a file. CRITICAL: If user does NOT specify directory, use ONLY filename like 'hello.txt' - system auto-saves to Desktop C:\\Users\\excalibur\\Desktop\\. Creates directories if needed.", parameters:{type:"object", properties:{path:{type:"string", description:"File path - use just filename for Desktop, or full path. No dir = Desktop."}, content:{type:"string", description:"File content"}}, required:["path","content"]}}},
+    {type:"function", function:{name:"write_file", description:"Write content to a file. CRITICAL: If user does NOT specify directory, use ONLY filename like 'hello.txt' - system auto-saves to Desktop A:\\AI\\qwen35-agent-test-workspace\\. Creates directories if needed.", parameters:{type:"object", properties:{path:{type:"string", description:"File path - use just filename for Desktop, or full path. No dir = Desktop."}, content:{type:"string", description:"File content"}}, required:["path","content"]}}},
     {type:"function", function:{name:"read_file", description:"Read file content. Supports offset/limit for large files.", parameters:{type:"object", properties:{path:{type:"string", description:"File path"}, offset:{type:"number", description:"Start line"}, limit:{type:"number", description:"Max lines"}}, required:["path"]}}},
     {type:"function", function:{name:"list_files", description:"List files in directory.", parameters:{type:"object", properties:{path:{type:"string", description:"Directory path"}}, required:["path"]}}},
     {type:"function", function:{name:"edit_file", description:"Edit a file by replacing exact string. Use read_file first to see content.", parameters:{type:"object", properties:{path:{type:"string"}, old_string:{type:"string", description:"Exact string to replace"}, new_string:{type:"string", description:"New string"}}, required:["path","old_string","new_string"]}}},
@@ -508,7 +508,7 @@ promptEl.onkeydown = e=>{ if(e.key==="Enter" && !e.shiftKey){ e.preventDefault()
 promptEl.oninput = ()=>{ promptEl.style.height="auto"; promptEl.style.height= Math.min(140, promptEl.scrollHeight)+"px"; $("#charCount").textContent = promptEl.value.length ? promptEl.value.length+" karakter" : "" }
 sendBtn.onclick = send
 // ── @ File Selectici — yukarı doğru, Desktop'tan başlar, ileri/geri, okut/değiştir ──
-let atCurrentPath = "C:\\Users\\excalibur\\Desktop"
+let atCurrentPath = "A:\\AI\\qwen35-agent-test-workspace"
 let atHistoryStack = []
 let atFiles = []
 let atFiltered = []
@@ -519,7 +519,7 @@ const atHint = document.getElementById("atHint")
 
 async function loadAtFiles(p){
   atCurrentPath = p
-  const display = p.replace("C:\\Users\\excalibur\\Desktop","Desktop").replace(/^Desktop\\/,"") || "Desktop"
+  const display = p.replace("A:\\AI\\qwen35-agent-test-workspace","Desktop").replace(/^Desktop\\/,"") || "Desktop"
   if(atPathEl) atPathEl.textContent = display
   if(atList) atList.innerHTML = `<div style="padding:12px;color:var(--muted);font-size:12px">Loading...</div>`
   try{
@@ -592,8 +592,8 @@ function goAtBack(){
   } else {
     const lastSlash = atCurrentPath.lastIndexOf("\\")
     const parent = lastSlash>0 ? atCurrentPath.slice(0, lastSlash) : atCurrentPath
-    if(parent && parent.length >= "C:\\Users\\excalibur\\Desktop".length) loadAtFiles(parent)
-    else loadAtFiles("C:\\Users\\excalibur\\Desktop")
+    if(parent && parent.length >= "A:\\AI\\qwen35-agent-test-workspace".length) loadAtFiles(parent)
+    else loadAtFiles("A:\\AI\\qwen35-agent-test-workspace")
   }
 }
 async function readAtFile(f){

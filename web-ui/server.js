@@ -8,11 +8,11 @@ import { spawn, exec } from "node:child_process"
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = 5173
-const DESKTOP = "C:\\Users\\excalibur\\Desktop"
+const DESKTOP = "A:\\AI\\qwen35-agent-test-workspace"
 const MAX_BODY_SIZE = 2 * 1024 * 1024 // 2MB
 const MAX_FILE_SIZE = 1024 * 1024 // 1MB per file
 const ALLOWED_ROOT = DESKTOP.toLowerCase()
-const KITAPLAR_KLASORU = "C:\\Users\\excalibur\\Desktop\\Kitaplar"
+const KITAPLAR_KLASORU = "A:\\AI\\qwen35-agent-test-workspace\\Kitaplar"
 function kitapKlasoru(baslik){ const guvenli = baslik.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 50); return `${KITAPLAR_KLASORU}\\${guvenli}` }
 function kelimeSayisi(metin){ return metin.trim().split(/\s+/).filter(Boolean).length }
 function sayfaHesapla(kelime){ return Math.max(1, Math.ceil(kelime / 300)) }

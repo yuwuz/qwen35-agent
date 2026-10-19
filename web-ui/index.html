@@ -111,7 +111,7 @@
       <div id="bookStatus" style="font-size:11.5px;color:var(--muted);line-height:1.5;padding:6px 0">No books yet<br><span style="color:var(--muted2)">Say "write book" — page layout, contents, numbers auto</span></div>
       <div class="row" style="margin-top:6px">
         <button class="btn small ghost" style="flex:1" onclick="(async()=>{const r=await fetch('/api/book-status',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});const j=await r.json();const el=document.getElementById('bookStatus');if(j.kitaplar&&j.kitaplar.length) el.innerHTML=j.kitaplar.map(k=>`📖 <b>${k.baslik}</b> — ${k.tamam} · ${k.siradaki}`).join('<br>'); else el.textContent=j.mesaj||'No books yet'})()">View Status</button>
-        <button class="btn small ghost" onclick="window.open('file:///C:/Users/excalibur/Desktop/Booklar','_blank')">Folder</button>
+        <button class="btn small ghost" onclick="window.open('file:///A:/AI/qwen35-agent-test-workspace/Booklar','_blank')">Folder</button>
       </div>
     </div>
 

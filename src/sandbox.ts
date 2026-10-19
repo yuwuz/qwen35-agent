@@ -28,7 +28,7 @@ export interface SandboxResult {
   tempDir: string
 }
 
-const DESKTOP = "C:\\Users\\excalibur\\Desktop"
+const DESKTOP = "A:\\AI\\qwen35-agent-test-workspace"
 
 function resolveDesktop(p: string): string {
   if (!p) return p

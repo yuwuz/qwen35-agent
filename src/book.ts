@@ -7,7 +7,7 @@
  * - Text positioning (alignment, line spacing, font)
  * - Persistence (continue in new chat)
  * 
- * All books: C:\Users\excalibur\Desktop\Kitaplar\
+ * All books: A:\AI\qwen35-agent-test-workspace\Kitaplar\
  */
 
 import type { Tool } from "./agent"
@@ -91,11 +91,11 @@ export const bookTools: Tool[] = [
     type: "function",
     function: {
       name: "book_status",
-      description: "GET BOOK STATUS - List existing books, current chapter, page count, what's next. Use AUTOMATICALLY for 'continue where I left off' in a new chat. DIRECTORY SUPPORTED: you can pass full directory path instead of title (e.g. C:\\Users\\excalibur\\Desktop\\Kitaplar\\Roma-nin-Sirlari).",
+      description: "GET BOOK STATUS - List existing books, current chapter, page count, what's next. Use AUTOMATICALLY for 'continue where I left off' in a new chat. DIRECTORY SUPPORTED: you can pass full directory path instead of title (e.g. A:\\AI\\qwen35-agent-test-workspace\\Kitaplar\\Roma-nin-Sirlari).",
       parameters: {
         type: "object",
         properties: {
-          kitapAdi: { type: "string", description: "Book title, folder name OR full directory path (e.g. C:\\Users\\excalibur\\Desktop\\Kitaplar\\Roma-nin-Sirlari). Empty = list all books" },
+          kitapAdi: { type: "string", description: "Book title, folder name OR full directory path (e.g. A:\\AI\\qwen35-agent-test-workspace\\Kitaplar\\Roma-nin-Sirlari). Empty = list all books" },
         },
         required: [],
       },
@@ -125,7 +125,7 @@ export const bookTools: Tool[] = [
       parameters: {
         type: "object",
         properties: {
-          kitapAdi: { type: "string", description: "Book title OR full directory path (e.g. C:\\Users\\excalibur\\Desktop\\Kitaplar\\MyBook)" },
+          kitapAdi: { type: "string", description: "Book title OR full directory path (e.g. A:\\AI\\qwen35-agent-test-workspace\\Kitaplar\\MyBook)" },
           bolumId: { type: "string", description: "Chapter ID (e.g. bolum-01). Empty = next chapter to write" },
           icerik: { type: "string", description: "Content to write. Empty = AI continues automatically (based on chapter summary)" },
           konum: { type: "string", description: "Position: baslangic/start, orta/middle, son/end, devam/continue (default: devam)" },
@@ -153,11 +153,11 @@ export const bookTools: Tool[] = [
     type: "function",
     function: {
       name: "book_extend",
-      description: "EXTEND BOOK - Continue an existing book from where you left off, ADD PAGES. Use AUTOMATICALLY when user in a new chat gives a directory and says 'add 2 pages', 'continue where I left off, write 3 more pages'. DIRECTORY SUPPORTED: full path or title. Qwen automatically writes new chapters and extends page count. Ex: book_extend(kitapYolu=\"C:\\Users\\excalibur\\Desktop\\Kitaplar\\Roma-nin-Sirlari\", ekSayfa=2)",
+      description: "EXTEND BOOK - Continue an existing book from where you left off, ADD PAGES. Use AUTOMATICALLY when user in a new chat gives a directory and says 'add 2 pages', 'continue where I left off, write 3 more pages'. DIRECTORY SUPPORTED: full path or title. Qwen automatically writes new chapters and extends page count. Ex: book_extend(kitapYolu=\"A:\\AI\\qwen35-agent-test-workspace\\Kitaplar\\Roma-nin-Sirlari\", ekSayfa=2)",
       parameters: {
         type: "object",
         properties: {
-          kitapYolu: { type: "string", description: "Book title OR full directory path (e.g. C:\\Users\\excalibur\\Desktop\\Kitaplar\\Roma-nin-Sirlari or just Roma'nın Sırları). Use directory if user provides it in new chat" },
+          kitapYolu: { type: "string", description: "Book title OR full directory path (e.g. A:\\AI\\qwen35-agent-test-workspace\\Kitaplar\\Roma-nin-Sirlari or just Roma'nın Sırları). Use directory if user provides it in new chat" },
           ekSayfa: { type: "number", description: "Number of pages to add (e.g. 2). 1 page ~280 words" },
           ekOzellik: { type: "string", description: "Optional extra topic/summary (e.g. 'new mystery in Pantheon')" },
         },
@@ -168,7 +168,7 @@ export const bookTools: Tool[] = [
 ]
 
 // ── Yardımcılar ──
-const KITAPLAR_KLASORU = "C:\\Users\\excalibur\\Desktop\\Kitaplar"
+const KITAPLAR_KLASORU = "A:\\AI\\qwen35-agent-test-workspace\\Kitaplar"
 
 function kitapKlasoru(baslik: string): string {
   const guvenli = baslik.replace(/[\\/:*?"<>|]/g, "").replace(/\s+/g, "-").slice(0, 50)
@@ -1030,7 +1030,7 @@ veya book_add_chapter ile özel bölüm ekle
             kitaplar.push(`📖 "${k.baslik}" — ${k.yazar} (${k.tur}) · ${tamamlanan}/${k.bolumler.length} bölüm · ${k.toplamSayfa} sayfa · ${k.durum} ${siradaki ? `· Sıradaki: ${siradaki.baslik} (${siradaki.id})` : "· ✅ Tamamlandı"}`)
           } catch {}
         }
-        return `📚 Kitaplar (${klasorler.length}):\n` + kitaplar.join("\n") + `\n\nTo continue: book_write(kitapAdi="...") or book_status(kitapAdi="...") ile detay\n💡 In a new chat you can also pass a directory: book_status(kitapAdi="C:\\Users\\excalibur\\Desktop\\Kitaplar\\Kitabim")`
+        return `📚 Kitaplar (${klasorler.length}):\n` + kitaplar.join("\n") + `\n\nTo continue: book_write(kitapAdi="...") or book_status(kitapAdi="...") ile detay\n💡 In a new chat you can also pass a directory: book_status(kitapAdi="A:\\AI\\qwen35-agent-test-workspace\\Kitaplar\\Kitabim")`
       } else {
         // DİZİN DESTEKLİ çözümleme
         let klasor: string
@@ -1039,7 +1039,7 @@ veya book_add_chapter ile özel bölüm ekle
           klasor = await cozumleKitapKlasoru(kitapAdi, fs, pathMod)
           data = await fs.readFile(pathMod.join(klasor, "kitap.json"), "utf-8")
         } catch {
-          return `❌ Book not found: "${kitapAdi}". book_status() ile listeye bak. Try the full directory path as well: C:\\Users\\excalibur\\Desktop\\Kitaplar\\...`
+          return `❌ Book not found: "${kitapAdi}". book_status() ile listeye bak. Try the full directory path as well: A:\\AI\\qwen35-agent-test-workspace\\Kitaplar\\...`
         }
         const k = JSON.parse(data) as Kitap
         const tamamlanan = k.bolumler.filter(b => b.durum === "tamamlandi").length
