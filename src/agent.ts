@@ -55,6 +55,7 @@ export interface GenerateOptions {
   temperature?: number
   format?: "json" | string
   stream?: boolean
+  toolTrace?: boolean
   onChunk?: (chunk: { content?: string; thinking?: string; toolCalls?: ToolCall[] }) => void
 }
 
