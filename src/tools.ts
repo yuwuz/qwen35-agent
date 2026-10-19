@@ -426,8 +426,71 @@ export async function executeTool(name: string, args: Record<string, unknown>): 
       const { exec } = await import("node:child_process")
       const { promisify } = await import("node:util")
       const execAsync = promisify(exec)
-      const { stdout, stderr } = await execAsync(args.command as string, { encoding: "utf8", timeout: 10000 } as any)
-      return stdout || stderr || "Done"
+
+      const command = String(args.command ?? "")
+      const requestedTimeout = Number(args.timeout_ms ?? 120000)
+
+      const timeout = Math.min(
+        Math.max(
+          Number.isFinite(requestedTimeout) ? requestedTimeout : 120000,
+          1000
+        ),
+        600000
+      )
+
+      if (!command.trim()) {
+        return [
+          "Exit Code: 1",
+          "Timed Out: false",
+          "STDOUT:",
+          "",
+          "STDERR:",
+          "Command is required.",
+        ].join("\n")
+      }
+
+      try {
+        const { stdout, stderr } = await execAsync(command, {
+          encoding: "utf8",
+          timeout,
+          windowsHide: true,
+          maxBuffer: 10 * 1024 * 1024,
+        } as any)
+
+        return [
+          "Exit Code: 0",
+          "Timed Out: false",
+          "STDOUT:",
+          String(stdout ?? "").trimEnd(),
+          "STDERR:",
+          String(stderr ?? "").trimEnd(),
+        ].join("\n")
+      } catch (error: any) {
+        const timedOut = Boolean(
+          error?.killed ||
+          error?.signal === "SIGTERM"
+        )
+
+        const exitCode =
+          typeof error?.code === "number"
+            ? error.code
+            : timedOut
+              ? 124
+              : 1
+
+        return [
+          `Exit Code: ${exitCode}`,
+          `Timed Out: ${timedOut}`,
+          "STDOUT:",
+          String(error?.stdout ?? "").trimEnd(),
+          "STDERR:",
+          String(
+            error?.stderr ??
+            error?.message ??
+            error
+          ).trimEnd(),
+        ].join("\n")
+      }
     }
     case "run_sandbox": {
       const { runInSandbox } = await import("./sandbox")
